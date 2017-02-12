@@ -15,11 +15,13 @@ public enum VoteType {
 public class VoteManager : MonoBehaviour {
 
     private Server server;
+    private GameObject rawImage;
     private Image[] choices;
     private Image[] monster;
     private Text[] scores;
     private Text voteText;
     private Text time;
+    private Texture2D tex;
     private float timeRemaining;
     public float timePerChoice = 5.0f;
     private bool voteTime = false;
@@ -36,6 +38,8 @@ public class VoteManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        rawImage = GameObject.Find("RawImage");
+        rawImage.SetActive(false);
         choices = new Image[4];
         scores = new Text[4];
 		for(int i = 0; i < 4; i++) {
@@ -63,7 +67,7 @@ public class VoteManager : MonoBehaviour {
             timeRemaining -= Time.fixedDeltaTime;
             if (timeRemaining < 0.0f)
                 timeRemaining = 0.0f;
-            time.text = ((int)Mathf.Floor(timeRemaining)).ToString();
+            time.text = ((int)Mathf.Ceil(timeRemaining)).ToString();
             if(timeRemaining == 0.0f) {
                 EndVote();
             }
@@ -150,7 +154,7 @@ public class VoteManager : MonoBehaviour {
 
     public int GetMaxScore() {
         int max = 0;
-        int res = -1;
+        int res = 0;
         for (int i = 0; i < 4; i++) {
             if (responses[i] > max) {
                 max = responses[i];
@@ -194,11 +198,38 @@ public class VoteManager : MonoBehaviour {
         server.SendMessageToAllClients(VoteMessage.id, msg);
         if (msg.isThereNext) {
             StartCoroutine(WaitALittle());
+        } else {
+            StartCoroutine(WaitALittleEnd());
+            
         }
     }
 
     IEnumerator WaitALittle() {
         yield return new WaitForSeconds(1);
         PrepareVote();
+    }
+
+    IEnumerator WaitALittleEnd() {
+        yield return new WaitForSeconds(2);
+        CreateTexture();
+    }
+
+    void CreateTexture() {
+        tex = new Texture2D((int)monster[0].sprite.rect.width, (int)monster[0].sprite.rect.height);
+        Color[] currPixels = null;
+        int[] order = { 3, 4, 2, 1, 0 };
+        foreach (int i in order){
+            Color[] pixels = monster[i].sprite.texture.GetPixels();
+            if (currPixels == null)
+                currPixels = pixels;
+            else
+                for (int j = 0; j < currPixels.Length; j++) {
+                    if (pixels[j].a != 0.0f)
+                        currPixels[j] = pixels[j];
+                }
+        }
+        tex.SetPixels(currPixels);
+        tex.Apply();
+        TextureCharacter.getInstance().tex = tex;
     }
 }
