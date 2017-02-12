@@ -5,12 +5,9 @@ using UnityEngine.Networking;
 
 public class Server : MonoBehaviour {
 
-    private string IPAdress = "192.168.43.148";
+    private string IPAdress = "192.168.43.76";
     private int port = 4444;
     private Dictionary<int, DeviceInfo> registeredDevices;
-    [SerializeField] private Calibration calibration;
-    [SerializeField] private GameObject target;
-    [SerializeField] private bool targetDebug = true;
 
     // Use this for initialization
     void Start () {
@@ -20,15 +17,19 @@ public class Server : MonoBehaviour {
 
 
     // Create a server and listen on a port
-    private void SetupServer() {
-        Debug.Log("Starting Server...");
-        NetworkServer.Listen(port);
-        Debug.Log("Server Started... Waiting for clients");
-        NetworkServer.RegisterHandler(MsgType.Connect, OnConnectedClient);
-        NetworkServer.RegisterHandler(MsgType.Disconnect, OnDisconnectedClient);
-        NetworkServer.RegisterHandler(RegisterHostMessage.id, OnReceivedRegisterHostMessage);
-        NetworkServer.RegisterHandler(ActionMessage.id, OnReceivedActionMessage);
-        NetworkServer.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
+    public void SetupServer() {
+        if (NetworkServer.listenPort != port) {
+            Debug.Log("Starting Server...");
+            NetworkServer.Listen(port);
+            Debug.Log("Server Started... Waiting for clients");
+            NetworkServer.RegisterHandler(MsgType.Connect, OnConnectedClient);
+            NetworkServer.RegisterHandler(MsgType.Disconnect, OnDisconnectedClient);
+            NetworkServer.RegisterHandler(RegisterHostMessage.id, OnReceivedRegisterHostMessage);
+        }
+    }
+
+    public void RegisterHandler(short id, NetworkMessageDelegate callback) {
+        NetworkServer.RegisterHandler(id, callback);
     }
 
     // client function
@@ -53,33 +54,12 @@ public class Server : MonoBehaviour {
         this.registeredDevices.Add(newDevice.id, newDevice);
     }
 
-    private void OnReceivedActionMessage(NetworkMessage netMsg) {
-        ActionMessage msg = netMsg.ReadMessage<ActionMessage>();
-       
-        if (msg.triggered) {
-            GameObject.Find("SpawnTarget").GetComponent<SpawnTarget>().Spawn(msg.position, registeredDevices[netMsg.conn.connectionId].target.GetComponent<SpriteRenderer>().color);
-            Debug.Log("Message received from device : " + registeredDevices[netMsg.conn.connectionId].name);
-            Debug.Log(msg.ToString());
-        } else{
-            if (registeredDevices[netMsg.conn.connectionId].target == null) {
-                registeredDevices[netMsg.conn.connectionId].target = Instantiate(target);
-                registeredDevices[netMsg.conn.connectionId].target.GetComponent<SpriteRenderer>().color = new Color(Random.value, Random.value, Random.value);
-            }
-            if (targetDebug)
-                registeredDevices[netMsg.conn.connectionId].target.SetActive(true);
-            else
-                registeredDevices[netMsg.conn.connectionId].target.SetActive(false);
-            registeredDevices[netMsg.conn.connectionId].target.transform.position = msg.position;
-        }
+    public DeviceInfo getRegisteredDevice(int id) {
+        DeviceInfo res;
+        if (registeredDevices.TryGetValue(id, out res))
+            return res;
+        return null;
     }
 
-    public void SendCalibrationMessage(float minX, float minY, float maxX, float maxY, int id) {
-        CalibrationMessage msg = new CalibrationMessage();
-        msg.minX = minX;
-        msg.minY = minY;
-        msg.maxX = maxX;
-        msg.maxY = maxY;
-
-        NetworkServer.SendToClient(id, CalibrationMessage.id, msg);
-    }
+    
 }

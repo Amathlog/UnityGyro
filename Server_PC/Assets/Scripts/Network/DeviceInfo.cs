@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-class DeviceInfo {
+
+public class DeviceInfo {
 
     // Class members
     private int m_id;
