@@ -5,7 +5,7 @@ public class Calibration : MonoBehaviour {
 
     [SerializeField] private GameObject calibrateTargets;
     public GameSceneManager gameSceneManager;
-
+	public Vector3 topLeft, bottomRight;
     // Use this for initialization
     void Start () {
         Disable();

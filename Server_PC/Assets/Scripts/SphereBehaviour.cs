@@ -6,9 +6,15 @@ public class SphereBehaviour : MonoBehaviour {
     [SerializeField] private GameObject plane;
 
     private void OnCollisionEnter(Collision collision) {
-        if (collision.gameObject.name == plane.name) {
-            GameObject.Destroy(this.gameObject);
+		if (collision.gameObject.layer == 9) {
+			GameSceneManager.instance.AddPoints (10);
+			EnemyMovementBehaviour temp = collision.gameObject.GetComponent<EnemyMovementBehaviour> ();
+			temp.StopAllCoroutines ();
+			temp.enabled = false;
+			GameSceneManager.instance.myEnemiesComp.aliveEnemies.Remove (temp);
+			Destroy (collision.gameObject,0.1f);
         }
+		GameObject.Destroy(this.gameObject);
     }
 
 }

@@ -21,6 +21,9 @@ public class SpawnTarget : MonoBehaviour {
 		if (spawnedSphere != null) {
 			Debug.Log (spawnedSphere.velocity);
 		}
+		if(Input.GetMouseButton(0)){
+			Spawn (Camera.main.ScreenToWorldPoint (Input.mousePosition + Vector3.forward * 10), Color.red);
+		}
 	}
 
 	// Use this for initialization
