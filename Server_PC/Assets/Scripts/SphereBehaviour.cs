@@ -12,6 +12,9 @@ public class SphereBehaviour : MonoBehaviour {
 			temp.StopAllCoroutines ();
 			temp.enabled = false;
 			GameSceneManager.instance.myEnemiesComp.aliveEnemies.Remove (temp);
+			if (GameSceneManager.instance.myEnemiesComp.aliveEnemies.Count == 0) {
+				GameSceneManager.instance.myEnemiesComp.aliveEnemiesReadyForPattern = false;
+			}
 			Destroy (collision.gameObject,0.1f);
         }
 		GameObject.Destroy(this.gameObject);

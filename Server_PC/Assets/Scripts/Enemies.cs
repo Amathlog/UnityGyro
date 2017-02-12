@@ -5,7 +5,7 @@ using UnityEngine;
 public class Enemies : MonoBehaviour {
 	public GameObject enemyPref;
 	public List<EnemyMovementBehaviour> aliveEnemies = new List<EnemyMovementBehaviour>();
-	private bool aliveEnemiesReadyForPattern = false;
+	public bool aliveEnemiesReadyForPattern = false;
 	private Transform bossTransform;
 	public EnemyType[] EnemiesMoveToPositionList, EnemiesPatternsList;
 
@@ -22,7 +22,6 @@ public class Enemies : MonoBehaviour {
 
 	void Start(){
 		bossTransform = GameObject.Find ("Boss").transform;
-		SpawnEnemies (8, 1);
 	}
 
 	void Update(){
@@ -41,7 +40,6 @@ public class Enemies : MonoBehaviour {
 			aliveEnemies.Add (go.GetComponent<EnemyMovementBehaviour>());
 		}
 		StartCoroutine (MoveToPositionAndStartPattern (enemyTypeIndex));
-
 	}
 
 	IEnumerator MoveToPositionAndStartPattern(int enemyTypeIndex)
@@ -50,7 +48,7 @@ public class Enemies : MonoBehaviour {
 		for (int i = 0; i < aliveEnemies.Count; i++) {
 			Vector3 v3 = Vector3.Lerp (eT.positiveLimit, eT.negativeLimit, i / (aliveEnemies.Count - 1f));
 			Debug.Log (v3);
-			aliveEnemies [i].ResetAnimation (Vector3.zero, v3 - aliveEnemies [i].transform.position, eT.t, eT.acx, eT.acy, eT.acz);
+			aliveEnemies [i].ResetAnimation (Vector3.zero, v3 - aliveEnemies [i].transform.position, eT.t*GameSceneManager.instance.speedMultiplier, eT.acx, eT.acy, eT.acz);
 			StartCoroutine(aliveEnemies[i].AnimateCoroutine());
 		}
 		yield return new WaitForSeconds(eT.t*2);
@@ -58,12 +56,12 @@ public class Enemies : MonoBehaviour {
 		for (int i = 0; i < aliveEnemies.Count; i++) {
 			if (ePattern.oneByOne) {
 				if (i % 2 == 0) {
-					aliveEnemies [i].ResetAnimation (ePattern.positiveLimit, ePattern.negativeLimit, ePattern.t, ePattern.acx, ePattern.acy, ePattern.acz);
+					aliveEnemies [i].ResetAnimation (ePattern.positiveLimit, ePattern.negativeLimit, ePattern.t*GameSceneManager.instance.speedMultiplier, ePattern.acx, ePattern.acy, ePattern.acz);
 				} else {
-					aliveEnemies [i].ResetAnimation (ePattern.negativeLimit, ePattern.positiveLimit, ePattern.t, ePattern.acx, ePattern.acy, ePattern.acz);
+					aliveEnemies [i].ResetAnimation (ePattern.negativeLimit, ePattern.positiveLimit, ePattern.t*GameSceneManager.instance.speedMultiplier, ePattern.acx, ePattern.acy, ePattern.acz);
 				}
 			} else {
-				aliveEnemies [i].ResetAnimation (ePattern.positiveLimit, ePattern.negativeLimit, ePattern.t, ePattern.acx, ePattern.acy, ePattern.acz);
+				aliveEnemies [i].ResetAnimation (ePattern.positiveLimit, ePattern.negativeLimit, ePattern.t*GameSceneManager.instance.speedMultiplier, ePattern.acx, ePattern.acy, ePattern.acz);
 			}
 		}
 		aliveEnemiesReadyForPattern = true;

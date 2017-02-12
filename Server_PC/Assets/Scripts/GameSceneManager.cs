@@ -11,9 +11,14 @@ public class GameSceneManager : MonoBehaviour {
     public GameObject target;
     [SerializeField] private bool targetDebug = true;
 	public static GameSceneManager instance;
-	public int score;
-	public Text scoreText;
+	public float score, timer;
+	private Text scoreText, timerText;
 	public Enemies myEnemiesComp;
+	public Material enemyMat;
+	public float speedMultiplier=1;
+	private CanvasGroup calibrateScreen;
+	private int nextWaveType = 1;
+
 
 	void Awake(){
 		if (instance == null) {
@@ -23,11 +28,71 @@ public class GameSceneManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+		scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
+		timerText = GameObject.Find ("TimerText").GetComponent<Text> ();
+		calibrateScreen = GameObject.Find ("CalibrateScreen").GetComponent<CanvasGroup> ();
+		score = 0;
+		timer = 10;
+		timerText.text = timer.ToString();
+
+		if(TextureCharacter.getInstance().tex != null){
+			enemyMat.mainTexture = TextureCharacter.getInstance ().tex;
+		}
         server.SetupServer();
         server.RegisterHandler(ActionMessage.id, OnReceivedActionMessage);
         server.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
 		myEnemiesComp = GameObject.Find ("EnemiesManager").GetComponent<Enemies> ();
+		StartCoroutine (GameCoroutine ());
     }
+
+	IEnumerator GameCoroutine(){
+		float iterator = 0;
+		while (iterator <= 1) {
+			iterator += 0.02f;
+			calibrateScreen.alpha = iterator;
+			yield return new WaitForSeconds (0.02f);
+		}
+
+		while (timer > 0) {
+			timer--;
+			timerText.text = timer.ToString();
+			yield return new WaitForSeconds (1.0f);
+		}
+
+		while (iterator > 0) {
+			iterator -= 0.02f;
+			calibrateScreen.alpha = iterator;
+		}
+		timer = 3;
+		timerText.text = timer.ToString ();
+
+		while (timer > 0) {
+			yield return new WaitForSeconds (1f);
+			timer--;
+			timerText.text = timer.ToString();
+		}
+
+		timer = 60;
+		timerText.text = timer.ToString();
+
+		myEnemiesComp.SpawnEnemies (8, nextWaveType);
+		nextWaveType++;
+		while (timer > 0) {
+			yield return new WaitForSeconds (1f);
+			timer--;
+			timerText.text = timer.ToString();
+			if (myEnemiesComp.aliveEnemies.Count == 0) {
+				myEnemiesComp.SpawnEnemies (8, nextWaveType);
+				if (nextWaveType == 1) {
+					nextWaveType = 0;
+				} else {
+					nextWaveType++;
+				}
+			}
+		}
+
+
+	}
 	
     private void OnReceivedActionMessage(NetworkMessage netMsg) {
         ActionMessage msg = netMsg.ReadMessage<ActionMessage>();

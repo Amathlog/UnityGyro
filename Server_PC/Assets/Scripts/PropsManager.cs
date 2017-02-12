@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PropsManager : MonoBehaviour {
 	// Use this for initialization
-	public float force = 60f;
+	public float force = 1f,getBackValue = 60f;
 	void Start () {
 		
 	}
@@ -13,9 +13,9 @@ public class PropsManager : MonoBehaviour {
 	void Update () {
 		foreach (Transform t in transform) {
 			if (t.position.z > -15f) {
-				t.Translate (Vector3.back * 0.1f, Space.World);
+				t.Translate (Vector3.back *force * Time.deltaTime, Space.World);
 			} else {
-				t.position += Vector3.forward * force;
+				t.position += Vector3.forward * getBackValue;
 			}
 		}	
 	}
