@@ -19,7 +19,6 @@ public class SpawnTarget : MonoBehaviour {
 
 	void Update(){
 		if (spawnedSphere != null) {
-			Debug.Log (spawnedSphere.velocity);
 		}
 	}
 

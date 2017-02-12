@@ -45,6 +45,8 @@ public class GameSceneManager : MonoBehaviour {
         msg.maxX = maxX;
         msg.maxY = maxY;
 
+        Debug.Log("MinX = " + minX + "MinY = " + minY + "MaxX = " + maxX + "MaxY = " + maxY);
+
         NetworkServer.SendToClient(id, CalibrationMessage.id, msg);
     }
 }

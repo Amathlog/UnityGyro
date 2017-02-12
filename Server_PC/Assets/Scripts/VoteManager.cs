@@ -16,6 +16,7 @@ public class VoteManager : MonoBehaviour {
 
     private Server server;
     private Image[] choices;
+    private Image[] monster;
     private Text[] scores;
     private Text voteText;
     private Text time;
@@ -24,6 +25,8 @@ public class VoteManager : MonoBehaviour {
     private bool voteTime = false;
     [Header("Order : Mouth - Eyes - Hat - Arms")]
     public Sprite[] spritesChoices;
+    [Header("Bodies (Fall/Summer/Winter/Spring)")]
+    public Sprite[] bodies;
     private VoteType currentVoteType = VoteType.MOUTH;
     private int numberOfClients;
     private bool waitingToBeReady = false;
@@ -39,6 +42,15 @@ public class VoteManager : MonoBehaviour {
             choices[i] = GameObject.Find("Choice" + (i + 1).ToString()).GetComponent<Image>();
             scores[i] = GameObject.Find("Score" + (i + 1).ToString()).GetComponent<Text>();
         }
+        monster = new Image[5];
+        monster[(int)VoteType.MOUTH] = GameObject.Find("Mouth").GetComponent<Image>();
+        monster[(int)VoteType.EYES] = GameObject.Find("Eyes").GetComponent<Image>();
+        monster[(int)VoteType.HAT] = GameObject.Find("Hat").GetComponent<Image>();
+        monster[(int)VoteType.ARMS] = GameObject.Find("Arms").GetComponent<Image>();
+        monster[4] = GameObject.Find("Body").GetComponent<Image>();
+        monster[4].sprite = bodies[2];
+        monster[4].color = Color.white;
+
         voteText = GameObject.Find("VoteTime").GetComponent<Text>();
         time = GameObject.Find("Time").GetComponent<Text>();
         server = GameObject.Find("Server").GetComponent<Server>();
@@ -51,7 +63,7 @@ public class VoteManager : MonoBehaviour {
             timeRemaining -= Time.fixedDeltaTime;
             if (timeRemaining < 0.0f)
                 timeRemaining = 0.0f;
-            time.text = "Time: " + ((int)Mathf.Floor(timeRemaining)).ToString() + "s";
+            time.text = ((int)Mathf.Floor(timeRemaining)).ToString();
             if(timeRemaining == 0.0f) {
                 EndVote();
             }
@@ -70,6 +82,27 @@ public class VoteManager : MonoBehaviour {
         timeRemaining = timePerChoice;
         for (int i = 0; i < 4; i++) {
             choices[i].sprite = spritesChoices[(int)currentVoteType * 4 + i];
+            if (currentVoteType == VoteType.MOUTH) {
+                choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(700, 700);
+                Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
+                newPos.y += 100;
+                choices[i].GetComponent<RectTransform>().position = newPos;
+            } else if (currentVoteType == VoteType.EYES) {
+                choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(600, 600);
+                Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
+                newPos.y -= 50;
+                choices[i].GetComponent<RectTransform>().position = newPos;
+            } else if(currentVoteType == VoteType.HAT) {
+                choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(500, 500);
+                Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
+                newPos.y -= 200;
+                choices[i].GetComponent<RectTransform>().position = newPos;
+            } else {
+                choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(225, 225);
+                Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
+                newPos.y += 200;
+                choices[i].GetComponent<RectTransform>().position = newPos;
+            }
         }
         SendAllPrepareVote();
     }
@@ -148,8 +181,11 @@ public class VoteManager : MonoBehaviour {
     }
 
     void EndVote() {
-        voteText.text = "Winner is " + GetMaxScore();
+        int winner = GetMaxScore();
+        voteText.text = "Winner is " + winner;
         voteTime = false;
+        monster[(int)currentVoteType].sprite = choices[winner - 1].sprite;
+        monster[(int)currentVoteType].color = Color.white;
         currentVoteType += 1;
         VoteMessage msg = new VoteMessage();
         msg.serverSpeaking = true;
@@ -162,7 +198,7 @@ public class VoteManager : MonoBehaviour {
     }
 
     IEnumerator WaitALittle() {
-        yield return new WaitForSeconds(10);
+        yield return new WaitForSeconds(1);
         PrepareVote();
     }
 }

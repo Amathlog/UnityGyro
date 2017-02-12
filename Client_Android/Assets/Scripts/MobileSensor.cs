@@ -55,18 +55,30 @@ public class MobileSensor : MonoBehaviour {
 
     public void SetMinAngle() {
         minAngleX = -calibratedRotation.z;
-        minAngleY = calibratedRotation.x;
+        minAngleY = -calibratedRotation.x;
     }
 
     public void SetMaxAngle() {
         maxAngleX = -calibratedRotation.z;
-        maxAngleY = calibratedRotation.x;
+        maxAngleY = -calibratedRotation.x;
     }
 
     public Vector3 spawnPosition() {
         float angleX = -calibratedRotation.z;
-        float angleY = calibratedRotation.x;
-        return new Vector3((angleX - minAngleX) / (maxAngleX - minAngleX) * (maxX - minX) + minX, (angleY - minAngleY) / (maxAngleY - minAngleY) * (maxY - minY) + minY, 0);
+        float angleY = -calibratedRotation.x;
+        float x = 0.0f;
+        float y = 0.0f;
+        if(angleX < 0) {
+            x = minX / minAngleX * angleX;
+        } else {
+            x = maxX / maxAngleX * angleX;
+        }
+        if (angleY < 0) {
+            y = maxY / minAngleY * angleY;
+        } else {
+            y = minY / maxAngleY * angleY;
+        }
+        return new Vector3(x,y, 0);
     }
 
     public bool DetectSwipe() {

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
@@ -68,6 +69,7 @@ public class VoteManager : MonoBehaviour {
             ChangeVoteText("Vote Over... ");
         for (int i = 0; i < 4; i++) {
             choices[i].onClick.RemoveAllListeners();
+            EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
         }
     }
 

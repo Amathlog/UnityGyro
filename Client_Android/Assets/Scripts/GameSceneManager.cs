@@ -12,6 +12,7 @@ public class GameSceneManager : MonoBehaviour {
     private Button calibrateButton;
     private bool waitForPositionData = false;
     private bool waitForFireAgain = false;
+    private CalibrateImageManager calImgMng;
     [SerializeField] float timeBetweenTwoPositions = 0.1f;
     [SerializeField] float timeBetweenFire = 0.7f;
 
@@ -19,6 +20,7 @@ public class GameSceneManager : MonoBehaviour {
     // Use this for initialization
     void Start () {
         GameObject.Find("MobileButton").GetComponent<Button>().onClick.AddListener(SetupClient);
+        calImgMng = GameObject.Find("CalibrateDir").GetComponent<CalibrateImageManager>();
         calibrateButton = GameObject.Find("Calibrate").GetComponent<Button>();
         calibrateButton.onClick.AddListener(Calibrate);
         calibrateButton.gameObject.SetActive(false);
@@ -37,7 +39,8 @@ public class GameSceneManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        if(mobileSensor.DetectSwipe()) {
+        //PrintLog(mobileSensor.getCurrentRotation().ToString());
+        if (mobileSensor.DetectSwipe()) {
             Fire();
         }
         if (calibrated && !waitForPositionData) {
@@ -102,7 +105,8 @@ public class GameSceneManager : MonoBehaviour {
     public void Calibrate() {
         calibrated = false;
         SendCalibrationData(true);
-        PrintLog("Point the center");
+        PrintLog("");
+        calImgMng.SetCenter();
         calibrateButton.onClick.RemoveAllListeners();
         calibrateButton.onClick.AddListener(CalibratedCenter);
 
@@ -110,19 +114,21 @@ public class GameSceneManager : MonoBehaviour {
 
     public void CalibratedCenter() {
         mobileSensor.ResetCalibratedRotation();
-        PrintLog("Point the top left");
+        calImgMng.SetTopLeft();
         calibrateButton.onClick.RemoveAllListeners();
         calibrateButton.onClick.AddListener(CalibratedTopLeft);
     }
 
     public void CalibratedTopLeft() {
         mobileSensor.SetMinAngle();
-        PrintLog("Point the bot right");
+        calImgMng.SetBotRight();
         calibrateButton.onClick.RemoveAllListeners();
         calibrateButton.onClick.AddListener(CalibratedBotRight);
     }
 
     public void CalibratedBotRight() {
+        mobileSensor.SetMaxAngle();
+        calImgMng.Disable();
         PrintLog("Swipe!");
         SendCalibrationData(false);
         calibrateButton.onClick.RemoveAllListeners();
