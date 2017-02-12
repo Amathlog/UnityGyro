@@ -24,11 +24,15 @@ public class GameSceneManager : MonoBehaviour {
         calibrateButton = GameObject.Find("Calibrate").GetComponent<Button>();
         calibrateButton.onClick.AddListener(Calibrate);
         calibrateButton.gameObject.SetActive(false);
+        SetupClient();
     }
 
     private void SetupClient() {
         PrintLog("Connecting...");
-        client.SetupClient(OnConnectedServer);
+        if (client.isConnected())
+            OnConnectedServer(null);
+        else
+            client.SetupClient(OnConnectedServer);
         client.RegisterHandler(CalibrationMessage.id, mobileSensor.OnCalibrationMessageReceived);
     }
 
@@ -58,7 +62,8 @@ public class GameSceneManager : MonoBehaviour {
         button.SetActive(false);
         calibrateButton.gameObject.SetActive(true);
 
-        client.SendRegisterHostMessage(netMsg);
+        if(netMsg != null)
+            client.SendRegisterHostMessage(netMsg);
     }
 
     public void SendActionData() {

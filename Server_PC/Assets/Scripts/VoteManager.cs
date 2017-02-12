@@ -38,8 +38,6 @@ public class VoteManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        rawImage = GameObject.Find("RawImage");
-        rawImage.SetActive(false);
         choices = new Image[4];
         scores = new Text[4];
 		for(int i = 0; i < 4; i++) {
@@ -212,6 +210,7 @@ public class VoteManager : MonoBehaviour {
     IEnumerator WaitALittleEnd() {
         yield return new WaitForSeconds(2);
         CreateTexture();
+        server.requestSceneChange(1);
     }
 
     void CreateTexture() {

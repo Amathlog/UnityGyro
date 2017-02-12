@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class Client : MonoBehaviour {
 
@@ -14,15 +15,17 @@ public class Client : MonoBehaviour {
 
     // Create a client and connect to the server port
     public void SetupClient(NetworkMessageDelegate callbackOnConnect) {
-        if (myClient != null && myClient.isConnected)
+        if (isConnected())
             return;
+        
         myClient = new NetworkClient();
         myClient.RegisterHandler(MsgType.Connect, callbackOnConnect);
+        myClient.RegisterHandler(RequestSceneChangeMessage.id, OnReceivedSceneChangeMessage);
         myClient.Connect(IPAdress, port);
     }
 
     public bool isConnected() {
-        return myClient.isConnected;
+        return myClient != null && myClient.isConnected;
     }
 
     public int getConnectionId() {
@@ -49,5 +52,17 @@ public class Client : MonoBehaviour {
     private void OnDestroy() {
         if (myClient != null && myClient.isConnected)
             myClient.Disconnect();
+    }
+
+    public void OnReceivedSceneChangeMessage(NetworkMessage netMsg) {
+        myClient.Disconnect();
+        RequestSceneChangeMessage msg = netMsg.ReadMessage<RequestSceneChangeMessage>();
+        if (msg.serverSpeaking) {
+            SceneManager.LoadScene(msg.sceneNumber);
+            RequestSceneChangeMessage msgSend = new RequestSceneChangeMessage();
+            msgSend.serverSpeaking = false;
+            msgSend.done = true;
+            SendMessage(RequestSceneChangeMessage.id, msgSend);
+        }
     }
 }

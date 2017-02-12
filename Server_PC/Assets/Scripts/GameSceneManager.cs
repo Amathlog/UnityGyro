@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class GameSceneManager : MonoBehaviour {
 
-    public Server server;
+    private Server server;
     public Calibration calibration;
     public GameObject target;
     [SerializeField] private bool targetDebug = true;
@@ -17,7 +17,10 @@ public class GameSceneManager : MonoBehaviour {
 	public Material enemyMat;
 	public float speedMultiplier=1;
 	private CanvasGroup calibrateScreen;
+
 	private int nextWaveType = 0;
+
+    public bool gameStarted = false;
 
 
 	void Awake(){
@@ -28,6 +31,7 @@ public class GameSceneManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        server = GameObject.Find("Server").GetComponent<Server>();
 		scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
 		timerText = GameObject.Find ("TimerText").GetComponent<Text> ();
 		calibrateScreen = GameObject.Find ("CalibrateScreen").GetComponent<CanvasGroup> ();
@@ -74,8 +78,9 @@ public class GameSceneManager : MonoBehaviour {
 
 		timer = 60;
 		timerText.text = timer.ToString();
+        gameStarted = true;
 
-		myEnemiesComp.SpawnEnemies (8, nextWaveType);
+        myEnemiesComp.SpawnEnemies (8, nextWaveType);
 		nextWaveType++;
 		while (timer > 0) {
 			yield return new WaitForSeconds (1f);
@@ -98,6 +103,7 @@ public class GameSceneManager : MonoBehaviour {
 	
     private void OnReceivedActionMessage(NetworkMessage netMsg) {
         ActionMessage msg = netMsg.ReadMessage<ActionMessage>();
+        Debug.Log("Device : " + netMsg.conn.connectionId);
         DeviceInfo device = server.getRegisteredDevice(netMsg.conn.connectionId);
 		Vector3 offset = (calibration.bottomRight - calibration.topLeft);
 
