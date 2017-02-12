@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 public class Server : MonoBehaviour {
 
-    private string IPAdress = "192.168.43.76";
+    private string IPAdress = "192.168.43.148";
     private int port = 4444;
     private Dictionary<int, DeviceInfo> registeredDevices;
     [SerializeField] private Calibration calibration;
