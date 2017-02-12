@@ -17,7 +17,7 @@ public class GameSceneManager : MonoBehaviour {
 	public Material enemyMat;
 	public float speedMultiplier=1;
 	private CanvasGroup calibrateScreen;
-	private int nextWaveType = 1;
+	private int nextWaveType = 0;
 
 
 	void Awake(){
@@ -83,13 +83,10 @@ public class GameSceneManager : MonoBehaviour {
 			timerText.text = timer.ToString();
 			if (myEnemiesComp.aliveEnemies.Count == 0) {
 				myEnemiesComp.aliveEnemiesReadyForPattern = false;
-				yield return new WaitForSeconds (1f);
-				timer--;
-				timerText.text = timer.ToString();
-
 				myEnemiesComp.SpawnEnemies (8, nextWaveType);
 				if (nextWaveType == 1) {
 					nextWaveType = 0;
+					speedMultiplier*=0.8f;
 				} else {
 					nextWaveType++;
 				}
@@ -134,10 +131,10 @@ public class GameSceneManager : MonoBehaviour {
         NetworkServer.SendToClient(id, CalibrationMessage.id, msg);
     }
 
-	public void AddPoints (int amount){
+	public void AddPoints (float amount){
 		score += amount;
 		if (scoreText != null) {
-			scoreText.text = score+ "Pts";
+			scoreText.text = "Score : "+Mathf.CeilToInt(score)+ "Pts";
 		}
 	}
 }

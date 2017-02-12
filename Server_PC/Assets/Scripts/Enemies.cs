@@ -8,6 +8,7 @@ public class Enemies : MonoBehaviour {
 	public bool aliveEnemiesReadyForPattern = false;
 	private Transform bossTransform;
 	public EnemyType[] EnemiesMoveToPositionList, EnemiesPatternsList;
+	public List<IEnumerator> myCoroutines = new List<IEnumerator>();
 
 	[System.Serializable]
 	public class EnemyType{
@@ -47,13 +48,18 @@ public class Enemies : MonoBehaviour {
 	IEnumerator MoveToPositionAndStartPattern(int enemyTypeIndex)
 	{
 		EnemyType eT = EnemiesMoveToPositionList [enemyTypeIndex];
+		Debug.Log (enemyTypeIndex);
 		for (int i = 0; i < aliveEnemies.Count; i++) {
 			Vector3 v3 = Vector3.Lerp (eT.positiveLimit, eT.negativeLimit, i / (aliveEnemies.Count - 1f));
 			Debug.Log (v3);
 			aliveEnemies [i].ResetAnimation (Vector3.zero, v3 - aliveEnemies [i].transform.position, eT.t*GameSceneManager.instance.speedMultiplier, eT.acx, eT.acy, eT.acz);
-			StartCoroutine(aliveEnemies[i].AnimateCoroutine());
+			if (i != aliveEnemies.Count - 1) {
+				StartCoroutine (aliveEnemies [i].AnimateCoroutine ());
+			} else {
+				yield return StartCoroutine (aliveEnemies [i].AnimateCoroutine ());
+			}
 		}
-		yield return new WaitForSeconds(eT.t*2);
+
 		EnemyType ePattern = EnemiesPatternsList [enemyTypeIndex];
 		for (int i = 0; i < aliveEnemies.Count; i++) {
 			if (ePattern.oneByOne) {

@@ -7,7 +7,7 @@ public class SphereBehaviour : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision) {
 		if (collision.gameObject.layer == 9) {
-			GameSceneManager.instance.AddPoints (10);
+			GameSceneManager.instance.AddPoints (200*(2-GameSceneManager.instance.speedMultiplier));
 			EnemyMovementBehaviour temp = collision.gameObject.GetComponent<EnemyMovementBehaviour> ();
 			temp.StopAllCoroutines ();
 			temp.enabled = false;

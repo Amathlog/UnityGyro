@@ -20,7 +20,7 @@ public class SpawnTarget : MonoBehaviour {
 	void Update(){
 		if (spawnedSphere != null) {
 		}
-		if(Input.GetMouseButton(0)){
+		if(Input.GetMouseButtonUp(0)){
 			Spawn (Camera.main.ScreenToWorldPoint (Input.mousePosition + Vector3.forward * 10), Color.red);
 		}
 	}
