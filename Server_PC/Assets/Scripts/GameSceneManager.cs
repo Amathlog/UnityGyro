@@ -82,6 +82,7 @@ public class GameSceneManager : MonoBehaviour {
 			timer--;
 			timerText.text = timer.ToString();
 			if (myEnemiesComp.aliveEnemies.Count == 0) {
+				myEnemiesComp.aliveEnemiesReadyForPattern = false;
 				myEnemiesComp.SpawnEnemies (8, nextWaveType);
 				if (nextWaveType == 1) {
 					nextWaveType = 0;

@@ -15,7 +15,7 @@ public class SphereBehaviour : MonoBehaviour {
 			if (GameSceneManager.instance.myEnemiesComp.aliveEnemies.Count == 0) {
 				GameSceneManager.instance.myEnemiesComp.aliveEnemiesReadyForPattern = false;
 			}
-			Destroy (collision.gameObject,0.1f);
+			Destroy (collision.gameObject);
         }
 		GameObject.Destroy(this.gameObject);
     }
