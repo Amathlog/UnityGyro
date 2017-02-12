@@ -4,8 +4,6 @@ using UnityEngine.Networking;
 public class Calibration : MonoBehaviour {
 
     [SerializeField] private GameObject calibrateTargets;
-    [SerializeField] private Transform topLeft;
-    [SerializeField] private Transform botRight;
 
     // Use this for initialization
     void Start () {
@@ -16,7 +14,10 @@ public class Calibration : MonoBehaviour {
         CalibrationMessage msg = netMsg.ReadMessage<CalibrationMessage>();
         if (msg.enable) {
             Enable();
-            GameObject.Find("Server").GetComponent<Server>().SendCalibrationMessage(topLeft.position.x, topLeft.position.y, botRight.position.x, botRight.position.y, netMsg.conn.connectionId);
+			Vector3 topLeft, bottomRight;
+			topLeft = Camera.main.ScreenToWorldPoint (new Vector3 (0f, Camera.main.pixelHeight, 10f));
+			bottomRight = Camera.main.ScreenToWorldPoint (new Vector3 (Camera.main.pixelWidth, 0f, 10f));
+			GameObject.Find("Server").GetComponent<Server>().SendCalibrationMessage(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, netMsg.conn.connectionId);
         } else {
             Disable();
         }
