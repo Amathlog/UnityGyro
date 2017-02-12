@@ -7,15 +7,6 @@ using UnityEngine.UI;
 public class MobileSensor : MonoBehaviour {
 
     private Vector3 calibratedRotation;
-    public Button calibrateButton;
-    private Text text;
-    public bool calibrated = false;
-    private bool waitForPositionData = false;
-    private bool waitForFireAgain = false;
-    private bool waitForTouchToBeOver = false;
-    private Client client;
-    [SerializeField] float timeBetweenTwoPositions = 0.1f;
-    [SerializeField] float timeBetweenFire = 0.7f;
     [SerializeField] float minYSwipeDetect = 75.0f;
 
     private float minX, minY, maxX, maxY, minAngleX, minAngleY, maxAngleX, maxAngleY;
@@ -23,70 +14,14 @@ public class MobileSensor : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        text = GameObject.Find("ServerText").GetComponent<Text>();
-        calibrateButton = GameObject.Find("Calibrate").GetComponent<Button>();
-        calibrateButton.onClick.AddListener(Calibrate);
-        calibrateButton.gameObject.SetActive(false);
-        client = GameObject.Find("Client").GetComponent<Client>();
-    }
-
-    public void Calibrate() {
-        calibrated = false;
-        client.SendCalibrationData(true);
-        text.text = "Point the center";
-        calibrateButton.onClick.RemoveAllListeners();
-        calibrateButton.onClick.AddListener(CalibratedCenter);
-        
-    }
-
-    public void CalibratedCenter() {
-        calibratedRotation = new Vector3();
-        text.text = "Point the top left";
-        calibrateButton.onClick.RemoveAllListeners();
-        calibrateButton.onClick.AddListener(CalibratedTopLeft);
-    }
-
-    public void CalibratedTopLeft() {
-        minAngleX = -calibratedRotation.z;
-        minAngleY = calibratedRotation.x;
-        text.text = "Point the bot right";
-        calibrateButton.onClick.RemoveAllListeners();
-        calibrateButton.onClick.AddListener(CalibratedBotRight);
-    }
-
-    public void CalibratedBotRight() {
-        maxAngleX = -calibratedRotation.z;
-        maxAngleY = calibratedRotation.x;
-        client.PrintLog("Swipe!");
-        client.SendCalibrationData(false);
-        calibrateButton.onClick.RemoveAllListeners();
-        calibrateButton.onClick.AddListener(Calibrate);
-        calibrateButton.gameObject.SetActive(false);
-        calibrated = true;
+        Input.gyro.enabled = true;
     }
 
     // Update is called once per frame
     void Update () {
         calibratedRotation += Input.gyro.rotationRate;
         FormatVector();
-        DetectSwipe();
-        if (calibrated && !waitForPositionData) {
-            waitForPositionData = true;
-            client.SendPositionData();
-            StartCoroutine(WaitForPositionDataCoroutine());
-        }
 	}
-
-    IEnumerator WaitForPositionDataCoroutine() {
-        yield return new WaitForSeconds(timeBetweenTwoPositions);
-        waitForPositionData = false;
-    }
-
-    IEnumerator WaitForFireAgainCoroutine() {
-        yield return new WaitForSeconds(timeBetweenFire);
-        waitForFireAgain = false;
-        client.PrintLog("Swipe!");
-    }
 
     void FormatVector() {
         if (calibratedRotation.x >= 180.0f)
@@ -117,27 +52,33 @@ public class MobileSensor : MonoBehaviour {
         return calibratedRotation;
     }
 
+    public void ResetCalibratedRotation() {
+        calibratedRotation = Vector3.zero;
+    }
+
+    public void SetMinAngle() {
+        minAngleX = -calibratedRotation.z;
+        minAngleY = calibratedRotation.x;
+    }
+
+    public void SetMaxAngle() {
+        maxAngleX = -calibratedRotation.z;
+        maxAngleY = calibratedRotation.x;
+    }
+
     public Vector3 spawnPosition() {
         float angleX = -calibratedRotation.z;
         float angleY = calibratedRotation.x;
         return new Vector3((angleX - minAngleX) / (maxAngleX - minAngleX) * (maxX - minX) + minX, (angleY - minAngleY) / (maxAngleY - minAngleY) * (maxY - minY) + minY, 0);
     }
 
-    public void Fire() {
-        if (!waitForFireAgain && calibrated) {
-            client.PrintLog("FIRE");
-            waitForFireAgain = true;
-            client.SendActionData();
-            StartCoroutine(WaitForFireAgainCoroutine());
-        }
-    }
-
-    public void DetectSwipe() {
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved && !waitForTouchToBeOver) {
+    public bool DetectSwipe() {
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved) {
             Vector2 touchDeltaPosition = Input.GetTouch(0).deltaPosition;
             if(touchDeltaPosition.y > minYSwipeDetect) {
-                Fire();
+                return true;
             }
         }
+        return false;
     }
 }
