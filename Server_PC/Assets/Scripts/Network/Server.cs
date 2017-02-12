@@ -40,6 +40,7 @@ public class Server : MonoBehaviour {
     private void OnDisconnectedClient(NetworkMessage netMsg) {
         Debug.Log("Disconnected to client ");
         this.registeredDevices.Remove(netMsg.conn.connectionId);
+        Debug.Log("Unregistered : " + netMsg.conn.connectionId);
     }
 
     private void OnReceivedRegisterHostMessage(NetworkMessage netMsg) {
