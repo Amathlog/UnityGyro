@@ -26,6 +26,7 @@ public class Enemies : MonoBehaviour {
 
 	void Update(){
 		if (aliveEnemiesReadyForPattern) {
+			Debug.Log ("AnimateLoop");
 			foreach (EnemyMovementBehaviour e in aliveEnemies) {
 				e.AnimateLoop ();
 			}
@@ -34,6 +35,7 @@ public class Enemies : MonoBehaviour {
 
 	//MAKE IT A POOL PATTERN FOROPT
 	public void SpawnEnemies(int nmbrOfEnemies, int enemyTypeIndex){
+		aliveEnemiesReadyForPattern = false;
 		for (int i = 0; i < nmbrOfEnemies; i++) {
 			GameObject go = Instantiate (enemyPref, transform.position + Vector3.forward, Quaternion.identity);
 			go.transform.parent = transform;
