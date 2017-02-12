@@ -35,3 +35,11 @@ class CalibrationMessage : MessageBase {
     public int idDevice;
     public float minX, minY, maxX, maxY;
 }
+
+class VoteMessage : MessageBase {
+    public static readonly short id = 896;
+    public bool serverSpeaking;
+    public bool start;
+    public bool isThereNext;
+    public int choice;
+}

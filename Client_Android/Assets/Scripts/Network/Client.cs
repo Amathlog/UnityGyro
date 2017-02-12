@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class Client : MonoBehaviour {
 
@@ -17,6 +14,8 @@ public class Client : MonoBehaviour {
 
     // Create a client and connect to the server port
     public void SetupClient(NetworkMessageDelegate callbackOnConnect) {
+        if (myClient != null && myClient.isConnected)
+            return;
         myClient = new NetworkClient();
         myClient.RegisterHandler(MsgType.Connect, callbackOnConnect);
         myClient.Connect(IPAdress, port);
@@ -36,6 +35,15 @@ public class Client : MonoBehaviour {
 
     public void SendMessage(short id, MessageBase msg) {
         myClient.Send(id, msg);
+    }
+
+    public void SendRegisterHostMessage(NetworkMessage netMsg) {
+        RegisterHostMessage msg = new RegisterHostMessage();
+        msg.deviceId = getConnectionId();
+        msg.deviceName = SystemInfo.deviceName;
+        msg.version = SystemInfo.deviceModel;
+        msg.accelerometerCompatible = SystemInfo.supportsAccelerometer;
+        SendMessage(RegisterHostMessage.id, msg);
     }
 
     private void OnDestroy() {

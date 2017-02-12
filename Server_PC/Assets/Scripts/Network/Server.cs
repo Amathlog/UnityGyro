@@ -15,6 +15,10 @@ public class Server : MonoBehaviour {
         this.registeredDevices = new Dictionary<int, DeviceInfo>();
     }
 
+    public void SendMessageToAllClients(short id, MessageBase msg) {
+        NetworkServer.SendToAll(id, msg);
+    }
+
 
     // Create a server and listen on a port
     public void SetupServer() {
@@ -59,6 +63,10 @@ public class Server : MonoBehaviour {
         if (registeredDevices.TryGetValue(id, out res))
             return res;
         return null;
+    }
+
+    public int getNumberRegisteredDevices() {
+        return registeredDevices.Count;
     }
 
     

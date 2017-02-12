@@ -55,12 +55,7 @@ public class GameSceneManager : MonoBehaviour {
         button.SetActive(false);
         calibrateButton.gameObject.SetActive(true);
 
-        RegisterHostMessage msg = new RegisterHostMessage();
-        msg.deviceId = client.getConnectionId();
-        msg.deviceName = SystemInfo.deviceName;
-        msg.version = SystemInfo.deviceModel;
-        msg.accelerometerCompatible = SystemInfo.supportsAccelerometer;
-        client.SendMessage(RegisterHostMessage.id, msg);
+        client.SendRegisterHostMessage(netMsg);
     }
 
     public void SendActionData() {
