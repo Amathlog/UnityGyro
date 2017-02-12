@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class Server : MonoBehaviour {
 
     private string IPAdress = "192.168.43.76";
     private int port = 4444;
     private Dictionary<int, DeviceInfo> registeredDevices;
+    private HashSet<int> clientConfirmation;
+    public bool doneWaiting = true;
 
     // Use this for initialization
     void Start () {
+        DontDestroyOnLoad(this.gameObject);
         SetupServer();
         this.registeredDevices = new Dictionary<int, DeviceInfo>();
     }
@@ -55,18 +59,40 @@ public class Server : MonoBehaviour {
 
         DeviceInfo newDevice = new DeviceInfo(netMsg.conn.connectionId, msg.deviceName, msg.accelerometerCompatible);
         Debug.Log("ConnectionID : " + newDevice.id);
+        Debug.Log(getNumberRegisteredDevices());
         this.registeredDevices.Add(newDevice.id, newDevice);
+        Debug.Log(getNumberRegisteredDevices());
     }
 
     public DeviceInfo getRegisteredDevice(int id) {
+        Debug.Log(getNumberRegisteredDevices());
         DeviceInfo res;
-        if (registeredDevices.TryGetValue(id, out res))
+        if (this.registeredDevices.TryGetValue(id, out res))
             return res;
         return null;
     }
 
     public int getNumberRegisteredDevices() {
-        return registeredDevices.Count;
+        return this.registeredDevices.Count;
+    }
+
+    public void requestSceneChange(int sceneNumber) {
+        doneWaiting = false;
+        SceneManager.LoadScene(sceneNumber);
+        RequestSceneChangeMessage msg = new RequestSceneChangeMessage();
+        msg.serverSpeaking = true;
+        msg.sceneNumber = sceneNumber;
+        clientConfirmation = new HashSet<int>();
+        RegisterHandler(RequestSceneChangeMessage.id, OnReceivedSceneChangeConfirmation);
+        SendMessageToAllClients(RequestSceneChangeMessage.id, msg);
+    }
+
+    public void OnReceivedSceneChangeConfirmation(NetworkMessage netMsg) {
+        RequestSceneChangeMessage msg = netMsg.ReadMessage<RequestSceneChangeMessage>();
+        if (!msg.serverSpeaking && msg.done)
+            clientConfirmation.Add(netMsg.conn.connectionId);
+        if(clientConfirmation.Count == registeredDevices.Count)
+            doneWaiting = true;
     }
 
     

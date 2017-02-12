@@ -43,3 +43,10 @@ class VoteMessage : MessageBase {
     public bool isThereNext;
     public int choice;
 }
+
+class RequestSceneChangeMessage : MessageBase {
+    public static readonly short id = 895;
+    public bool serverSpeaking;
+    public int sceneNumber;
+    public bool done;
+}

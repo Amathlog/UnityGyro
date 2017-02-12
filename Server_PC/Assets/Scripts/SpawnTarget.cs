@@ -39,6 +39,8 @@ public class SpawnTarget : MonoBehaviour {
 	}
 	
 	public void Spawn(Vector3 position, Color color) {
+        if (!GameSceneManager.instance.gameStarted)
+            return;
 		GameObject obj = Instantiate(sphereSpawn,Camera.main.transform.position + Vector3.down, Quaternion.identity);
         float xValue = ((position.x - minX) / (maxX - minX) - 0.5f) * 2.0f;
         float yValue = ((position.y - minY) / (maxY - minY) - 0.5f) * 2.0f;
