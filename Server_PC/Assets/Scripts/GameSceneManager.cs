@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameSceneManager : MonoBehaviour {
 
@@ -21,7 +22,7 @@ public class GameSceneManager : MonoBehaviour {
 	private int nextWaveType = 0;
 
     public bool gameStarted = false;
-
+    private ParticleSystem explo;
 
 	void Awake(){
 		if (instance == null) {
@@ -31,6 +32,7 @@ public class GameSceneManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        explo = GameObject.Find("Explosions").GetComponent<ParticleSystem>();
         server = GameObject.Find("Server").GetComponent<Server>();
 		scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
 		timerText = GameObject.Find ("TimerText").GetComponent<Text> ();
@@ -47,6 +49,11 @@ public class GameSceneManager : MonoBehaviour {
         server.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
 		myEnemiesComp = GameObject.Find ("EnemiesManager").GetComponent<Enemies> ();
 		StartCoroutine (GameCoroutine ());
+    }
+
+    public void Explode(Vector3 pos) {
+        explo.transform.position = pos;
+        explo.Play();
     }
 
 	IEnumerator GameCoroutine(){
@@ -98,8 +105,10 @@ public class GameSceneManager : MonoBehaviour {
 			}
 		}
 
+        yield return new WaitForSeconds(3.0f);
+        server.requestSceneChange(2);
 
-	}
+    }
 	
     private void OnReceivedActionMessage(NetworkMessage netMsg) {
         ActionMessage msg = netMsg.ReadMessage<ActionMessage>();

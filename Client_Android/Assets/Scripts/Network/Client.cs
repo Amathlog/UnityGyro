@@ -58,7 +58,7 @@ public class Client : MonoBehaviour {
         myClient.Disconnect();
         RequestSceneChangeMessage msg = netMsg.ReadMessage<RequestSceneChangeMessage>();
         if (msg.serverSpeaking) {
-            SceneManager.LoadScene(msg.sceneNumber);
+            SceneManager.LoadScene(msg.sceneNumber+1);
             RequestSceneChangeMessage msgSend = new RequestSceneChangeMessage();
             msgSend.serverSpeaking = false;
             msgSend.done = true;
