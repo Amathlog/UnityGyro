@@ -1,0 +1,192 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('test:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+/**
+ * Socket creation
+ */
+var io = require('socket.io').listen(server);
+
+var password = "f7X%3&_<7S9h@U}Sd5weR>x<nkWE#w{"
+
+var ids = {};
+
+function generatate_color(){
+  var colors = [];
+  for(i = 0; i < 3; i++){
+    colors.push(Math.floor((Math.random() * 256) + 1))
+  }
+  return colors;
+}
+
+function getUserId(socket){
+    var cookie = socket.handshake.headers.cookie;
+    var match = cookie.match(/\buser_id=([a-zA-Z0-9]{32})/)
+    return match ? match[1] : null
+}
+
+function* entries(obj) {
+  for (let key of Object.keys(obj)) {
+    yield [key, obj[key]];
+  }  
+}
+
+function printIds(){
+  for (let [key, value] of entries(ids)) {
+    console.log(key + ":")
+    for (let [k, v] of entries(value)) {
+      console.log("\t" + k + ":" + v)
+    }
+  }
+}
+
+io.sockets.on('connection', function (socket) {
+
+    socket.on('userId', function(userId){
+      if(userId in ids){
+        console.log("We know that client:" + ids[userId].username)
+        ids[userId].connected = true
+        ids[userId].socket = socket
+        socket.emit('connected')
+        //socket.broadcast.emit('chat message', {server:true, msg:ids[userId].username + " welcome back!"});
+      }else{
+          //var colors = generatate_color();
+          var username = "Unknown"
+          ids[userId] = {username:username, connected:false, socket:socket}
+          console.log('New Client connected!');
+          socket.emit('needToConnect')
+          //socket.broadcast.emit('chat message', {server:true, msg:"A new person has arrived!"});
+        }
+    
+    })
+
+    // Handle entering the game
+    socket.on('enteringGame', function(data){
+      var userId = data.userId
+      ids[userId].username = data.username
+      ids[userId].connected = true
+      socket.emit('connected')
+    })
+    
+    // socket.emit('userInfo', {colors:ids[userId].colors, username:ids[userId].username});
+    // socket.emit('newMode')
+
+    socket.on('disconnect', function(){
+      console.log('Client disconnected');
+    });
+    // socket.on('chat message', function (msg) {
+    //     var userId = getUserId(socket)
+    //     ids[userId].username = msg.name
+    //     socket.broadcast.emit('chat message', {server:false, name:msg.name, colors:colors, msg:msg.msg});
+    // })
+    socket.on('shoot', function(msg){
+        console.log("Shoot! " + msg.accl)
+    })
+    socket.on('accl', function(msg){
+        //console.log(msg.accl)
+    })
+    socket.on('hi', function(msg){
+      console.log(msg)
+      socket.emit("hi", "Hello")
+    })
+});
+
+mode = require('../public/javascripts/mode.js')
+
+function changeMode(){
+    mode.currentMode = (mode.currentMode + 1) % 2
+    for(let [key, value] of entries(ids)){
+      if(value.connected)
+        value.socket.emit("newMode")
+    }
+    setTimeout(function () { changeMode() }, 5000);
+}
+
+changeMode()

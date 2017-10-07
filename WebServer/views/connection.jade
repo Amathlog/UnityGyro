@@ -1,0 +1,14 @@
+block content
+    h1 Welcome to Bibittes Challenge
+
+    p Please state your username!
+
+    input#username(type="text")
+
+    button.connect Enter the game
+
+    script(type="text/javascript").
+
+        $('button.connect').click(function () {
+            emitEnteringGameMessage($('#username').val())
+        })

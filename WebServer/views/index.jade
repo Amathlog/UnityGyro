@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    h1 Socket.IO chat
+    h1#accl accl
+    h1#touch touch
+
+    ul#messages
+    div#touchzone
+    form(action="")
+        input#nick
+        input#m(autocomplete="off")
+        button Send
+    script(src="/javascripts/buffer.js")
+    script(src="/javascripts/accelerometer.js")
+    script(src="/javascripts/touch.js")
+
+    script(type="text/javascript").
+
+        connect()
+
+        configureChat()

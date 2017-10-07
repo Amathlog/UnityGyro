@@ -1,0 +1,17 @@
+extends layout
+
+block content
+    h1 Main Page
+
+    div#dynamicHTML
+
+    script(src="/javascripts/buffer.js")
+    script(src="/javascripts/moveDetection.js")
+    script(src="/javascripts/touch.js")
+
+    script(type="text/javascript").
+        lockScreen()
+        
+        connect()
+
+        configureDynamicHTML()
