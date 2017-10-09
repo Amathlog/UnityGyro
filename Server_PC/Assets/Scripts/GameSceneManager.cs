@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class GameSceneManager : MonoBehaviour {
 
     private Server server;
+    private SocketClient socketClient;
     public Calibration calibration;
     public GameObject target;
     [SerializeField] private bool targetDebug = true;
@@ -44,10 +45,12 @@ public class GameSceneManager : MonoBehaviour {
 		if(TextureCharacter.getInstance().tex != null){
 			enemyMat.mainTexture = TextureCharacter.getInstance ().tex;
 		}
-        server.SetupServer();
-        server.RegisterHandler(ActionMessage.id, OnReceivedActionMessage);
-        server.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
-		myEnemiesComp = GameObject.Find ("EnemiesManager").GetComponent<Enemies> ();
+        //server.SetupServer();
+        //server.RegisterHandler(ActionMessage.id, OnReceivedActionMessage);
+        //server.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
+        socketClient = SocketClient.GetInstance();
+        socketClient.ChangeMode(1);
+        myEnemiesComp = GameObject.Find ("EnemiesManager").GetComponent<Enemies> ();
 		StartCoroutine (GameCoroutine ());
     }
 

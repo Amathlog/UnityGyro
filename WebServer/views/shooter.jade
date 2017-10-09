@@ -3,15 +3,17 @@ block content
     style(type='text/css').
         #mainbody{
            position: absolute;
-           top: 70px;
+           top: 115px;
            width: 100%;
            height: 85%;
         }
 
     h1#touch Shooter
     h1#accl accl
+    button#calibrate Calibrate
 
     div#mainbody
 
     script(type='text/javascript').
+        $('#calibrate').click(moveDetection.calibrate)
         touchsurface = configureTouch("mainbody")

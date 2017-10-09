@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public enum VoteType {
     MOUTH=0,
@@ -15,6 +16,7 @@ public enum VoteType {
 public class VoteManager : MonoBehaviour {
 
     private Server server;
+    private SocketClient socketClient;
     private GameObject rawImage;
     private Image[] choices;
     private Image[] monster;
@@ -33,7 +35,7 @@ public class VoteManager : MonoBehaviour {
     private int numberOfClients;
     private bool waitingToBeReady = false;
     private HashSet<int> clientsReady;
-    private Dictionary<int, int> clientResponse;
+    private Dictionary<string, int> clientResponse;
     private int[] responses;
 
     // Use this for initialization
@@ -55,13 +57,20 @@ public class VoteManager : MonoBehaviour {
 
         voteText = GameObject.Find("VoteTime").GetComponent<Text>();
         time = GameObject.Find("Time").GetComponent<Text>();
-        server = GameObject.Find("Server").GetComponent<Server>();
-        server.SetupServer();
-	}
+        //server = GameObject.Find("Server").GetComponent<Server>();
+        //server.SetupServer();
+        socketClient = SocketClient.GetInstance();
+        socketClient.SetupSocket();
+        socketClient.voteEventCallbacks += onVoteMessageReceived;
+        while (!socketClient.connected) { }
+        socketClient.ChangeMode(0);
+        socketClient.ChangeVoteStatus(false);
+    }
 	
 	// Update is called once per frame
 	void FixedUpdate () {
         if (voteTime && timeRemaining > 0.0f) {
+            UpdateVoteScore();
             timeRemaining -= Time.fixedDeltaTime;
             if (timeRemaining < 0.0f)
                 timeRemaining = 0.0f;
@@ -74,13 +83,13 @@ public class VoteManager : MonoBehaviour {
 
     public void SetupBeginVote() {
         GameObject.Find("BeginVote").SetActive(false);
-        numberOfClients = server.getNumberRegisteredDevices();
-        server.RegisterHandler(VoteMessage.id, onVoteMessageReceived);
+        //numberOfClients = server.getNumberRegisteredDevices();
+        //server.RegisterHandler(VoteMessage.id, onVoteMessageReceived);
         PrepareVote();
     }
 
     void PrepareVote() {
-        voteText.text = "Waiting for clients...";
+        //voteText.text = "Waiting for clients...";
         timeRemaining = timePerChoice;
         for (int i = 0; i < 4; i++) {
             choices[i].sprite = spritesChoices[(int)currentVoteType * 4 + i];
@@ -110,35 +119,55 @@ public class VoteManager : MonoBehaviour {
     }
 
     void SendAllPrepareVote() {
-        VoteMessage msg = new VoteMessage();
-        msg.serverSpeaking = true;
-        msg.start = false;
-        msg.choice = -1;
-        clientsReady = new HashSet<int>();
-        waitingToBeReady = true;
-        server.SendMessageToAllClients(VoteMessage.id, msg);
+        //VoteMessage msg = new VoteMessage();
+        //msg.serverSpeaking = true;
+        //msg.start = false;
+        //msg.choice = -1;
+        //clientsReady = new HashSet<int>();
+        //waitingToBeReady = true;
+        //server.SendMessageToAllClients(VoteMessage.id, msg);
+        socketClient.ChangeVoteStatus(true);
+        StartVote();
     }
 
-    void onVoteMessageReceived(NetworkMessage netMsg) {
-        VoteMessage msg = netMsg.ReadMessage<VoteMessage>();
-        if (waitingToBeReady) {
-            try {
-                clientsReady.Add(netMsg.conn.connectionId);
-            } catch (Exception e) {
+    //void onVoteMessageReceived(NetworkMessage netMsg) {
+    //    VoteMessage msg = netMsg.ReadMessage<VoteMessage>();
+    //    if (waitingToBeReady) {
+    //        try {
+    //            clientsReady.Add(netMsg.conn.connectionId);
+    //        } catch (Exception e) {
                 
+    //        }
+    //        if(clientsReady.Count == numberOfClients) {
+    //            waitingToBeReady = false;
+    //            StartVote();
+    //        }
+    //    } else if (voteTime) {
+    //        if (clientResponse.ContainsKey(netMsg.conn.connectionId)) {
+    //            responses[clientResponse[netMsg.conn.connectionId]-1]--;
+    //        }
+    //        clientResponse[netMsg.conn.connectionId] = msg.choice;
+    //        responses[clientResponse[netMsg.conn.connectionId]-1]++;
+    //        UpdateVoteScore();
+    //    }
+    //}
+
+    void onVoteMessageReceived(string id, int choice) {
+        if (voteTime) {
+            if (clientResponse.ContainsKey(id)) {
+                responses[clientResponse[id]]--;
             }
-            if(clientsReady.Count == numberOfClients) {
-                waitingToBeReady = false;
-                StartVote();
-            }
-        } else if (voteTime) {
-            if (clientResponse.ContainsKey(netMsg.conn.connectionId)) {
-                responses[clientResponse[netMsg.conn.connectionId]-1]--;
-            }
-            clientResponse[netMsg.conn.connectionId] = msg.choice;
-            responses[clientResponse[netMsg.conn.connectionId]-1]++;
-            UpdateVoteScore();
+            clientResponse[id] = choice;
+            responses[choice]++;
         }
+    }
+
+    void printResponses() {
+        string res = "";
+        for(int i = 0; i < responses.Length; i++) {
+            res += "(" + (i + 1) + ": " + responses[i] + ") ";
+        }
+        Debug.Log(res);
     }
 
     void UpdateVoteScore() {
@@ -174,12 +203,12 @@ public class VoteManager : MonoBehaviour {
         for(int i = 0; i < 4; i++) {
             responses[i] = 0;
         }
-        clientResponse = new Dictionary<int, int>();
+        clientResponse = new Dictionary<string, int>();
         UpdateVoteScore();
-        VoteMessage msg = new VoteMessage();
-        msg.serverSpeaking = true;
-        msg.start = true;
-        server.SendMessageToAllClients(VoteMessage.id, msg);
+        //VoteMessage msg = new VoteMessage();
+        //msg.serverSpeaking = true;
+        //msg.start = true;
+        //server.SendMessageToAllClients(VoteMessage.id, msg);
     }
 
     void EndVote() {
@@ -189,12 +218,14 @@ public class VoteManager : MonoBehaviour {
         monster[(int)currentVoteType].sprite = choices[winner - 1].sprite;
         monster[(int)currentVoteType].color = Color.white;
         currentVoteType += 1;
-        VoteMessage msg = new VoteMessage();
-        msg.serverSpeaking = true;
-        msg.start = false;
-        msg.isThereNext = ((int)currentVoteType < 4);
-        server.SendMessageToAllClients(VoteMessage.id, msg);
-        if (msg.isThereNext) {
+        bool isThereNext = ((int)currentVoteType < 4);
+        socketClient.ChangeVoteStatus(false);
+        //VoteMessage msg = new VoteMessage();
+        //msg.serverSpeaking = true;
+        //msg.start = false;
+        //msg.isThereNext =
+        //server.SendMessageToAllClients(VoteMessage.id, msg);
+        if (isThereNext) {
             StartCoroutine(WaitALittle());
         } else {
             StartCoroutine(WaitALittleEnd());
@@ -210,7 +241,7 @@ public class VoteManager : MonoBehaviour {
     IEnumerator WaitALittleEnd() {
         yield return new WaitForSeconds(2);
         CreateTexture();
-        server.requestSceneChange(1);
+        SceneManager.LoadScene(1);
     }
 
     void CreateTexture() {

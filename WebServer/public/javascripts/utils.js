@@ -1,5 +1,6 @@
 // var adress = "localhost:3000"
-var adress = "192.168.1.124:3000"
+var adress = "192.168.1.110:3000"
+//var adress = "192.168.1.124:3000"
 
 function generate_message(o){
     var name = o.name;

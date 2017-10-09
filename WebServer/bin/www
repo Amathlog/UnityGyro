@@ -95,6 +95,45 @@ function onListening() {
 var io = require('socket.io').listen(server);
 
 var password = "f7X%3&_<7S9h@U}Sd5weR>x<nkWE#w{"
+var gameConnected = false;
+
+function getMessageForGame(name, data){
+  data = JSON.stringify(data)
+  data = data.replace(/"/g, "\"")
+  res = {password:password, name:name, jsonData:data}
+  return res
+}
+
+function isGame(msg){
+  if(typeof(msg) === typeof({})){
+    return false;
+  }
+  msg = JSON.parse(msg)
+  console.log(msg)
+  return (typeof(msg) === typeof({}) && "password" in msg && msg.password === password)
+}
+
+function gameToJson(msg){
+  msg = JSON.parse(msg)
+  msg.jsonData = JSON.parse(msg.jsonData)
+  return msg
+}
+
+function gyroToGame(value){
+  range_x = 20
+  range_y = 10
+  x = value[0] / range_x
+  if(x > 1.0)
+    x = 1.0;
+  else if(x < -1.0)
+    x = -1.0
+  y = value[1] / range_y
+  if(y > 1.0)
+    y = 1.0;
+  else if(y < -1.0)
+    y = -1.0
+  return [x,y]
+}
 
 var ids = {};
 
@@ -129,17 +168,22 @@ function printIds(){
 
 io.sockets.on('connection', function (socket) {
 
-    socket.on('userId', function(userId){
-      if(userId in ids){
-        console.log("We know that client:" + ids[userId].username)
-        ids[userId].connected = true
-        ids[userId].socket = socket
+    socket.on('userId', function(msg){
+      if(isGame(msg)){
+        // This is game, register it
+        gameConnected = true;
+        msg = gameToJson(msg)
+        ids[msg.jsonData.id] = {username:msg.jsonData.id, connected:true, socket:socket}
+      } else if(msg.userId in ids || 'username' in msg){
+        console.log("We know that client:" + ids[msg.userId].username)
+        ids[msg.userId].connected = true
+        ids[msg.userId].socket = socket
         socket.emit('connected')
         //socket.broadcast.emit('chat message', {server:true, msg:ids[userId].username + " welcome back!"});
       }else{
           //var colors = generatate_color();
           var username = "Unknown"
-          ids[userId] = {username:username, connected:false, socket:socket}
+          ids[msg.userId] = {username:username, connected:false, socket:socket}
           console.log('New Client connected!');
           socket.emit('needToConnect')
           //socket.broadcast.emit('chat message', {server:true, msg:"A new person has arrived!"});
@@ -170,13 +214,43 @@ io.sockets.on('connection', function (socket) {
         console.log("Shoot! " + msg.accl)
     })
     socket.on('accl', function(msg){
-        //console.log(msg.accl)
+        if(mode.currentMode === 1){
+          data = gyroToGame(msg.accl)
+          if("server" in ids)
+            ids["server"].socket.emit('updatePosition', getMessageForGame('updatePosition', {id:msg.userId, x:data[0], y:data[1]}))
+        }
     })
     socket.on('hi', function(msg){
       console.log(msg)
       socket.emit("hi", "Hello")
     })
+
+    socket.on("serverMessage", function(msg){
+      if(isGame(msg)){
+        msg = gameToJson(msg)
+        if(msg.name === "requestscenechange"){
+            mode.currentMode = msg.jsonData.mode;
+            brodcastToAllClients("newMode", {})
+        } else if(msg.name === "voteStatus"){
+            mode.voting = msg.jsonData.voting
+            brodcastToAllClients("voteStatus", {voting:msg.jsonData.voting})
+        }
+      }
+    });
+
+    socket.on('vote', function(msg){
+      ids["server"].socket.emit('vote', getMessageForGame('vote', {id:msg.userId, vote:msg.vote}))
+    });
 });
+
+function brodcastToAllClients(name, msg){
+  for(let [key, value] of entries(ids)){
+    if(key === "server")
+      continue
+    if(value.connected)
+      value.socket.emit(name, msg)
+  }
+}
 
 mode = require('../public/javascripts/mode.js')
 
@@ -189,4 +263,5 @@ function changeMode(){
     setTimeout(function () { changeMode() }, 5000);
 }
 
-changeMode()
+/*changeMode()
+*/

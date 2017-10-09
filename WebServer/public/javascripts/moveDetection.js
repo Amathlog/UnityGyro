@@ -4,6 +4,8 @@ var moveDetection = (function () {
     var _valid  = false;
     var _gyro = false
 
+    var _calibrated_center = [0,0,0]
+
     // Accelerometer part
     function onDeviceMotion(event){
         _valid = event.accelerationIncludingGravity.x != null;
@@ -24,6 +26,28 @@ var moveDetection = (function () {
         }
     } 
 
+    function _calibrate(){
+        _calibrated_center = _raw_value()
+    }
+
+    function _raw_value(){
+        return _valid? (_gyro? [_alpha, _beta, _gamma] : _buffer.filtered()) : [0,0,0];
+    }
+
+    function _value(){
+        r_v = _raw_value();
+        r_v[0] -= _calibrated_center[0]
+        if (r_v[0] > 180)
+            r_v[0] -= 360
+        r_v[1] -= _calibrated_center[1]
+        if (r_v[1] > 180)
+            r_v[1] -= 360
+        r_v[2] -= _calibrated_center[2]
+        if (r_v[2] > 90)
+            r_v[2] -= 180
+        return r_v
+    }
+
     if(window.DeviceOrientationEvent){
         window.addEventListener("deviceorientation", onDeviceOrientation, true);
         _gyro = true
@@ -41,10 +65,13 @@ var moveDetection = (function () {
             return _gyro;
         },
         format: function(f) {
-            return _valid? (_gyro? [_alpha, _beta, _gamma].map(f) : _buffer.filtered().map(f)) : "Invalid";
+            return _valid? _value().map(f) : "Invalid";
         },
         value: function() {
-            return _valid? (_gyro? [_alpha, _beta, _gamma] : _buffer.filtered()) : [0,0,0];
+            return _value()
+        },
+        calibrate: function() {
+            _calibrate();
         }
     };
 })();

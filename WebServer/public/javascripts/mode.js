@@ -1,1 +1,1 @@
-module.exports = {currentMode:1}
+module.exports = {currentMode:1, voting:false}

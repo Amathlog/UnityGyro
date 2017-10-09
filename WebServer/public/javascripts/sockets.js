@@ -19,7 +19,7 @@ function connect(){
     }
     socket = io.connect(adress);
     socket.on('connect', function(){
-        socket.emit('userId', getUserId())
+        socket.emit('userId', {userId:getUserId()})
     })
 }
 
@@ -35,11 +35,41 @@ function configureDynamicHTML(firstTime){
 
     socket.on('connected', function(data){
         $('#dynamicHTML').load('/', {needToConnect:false, userId:getUserId()})
+        $.get( "/voteStatus", function( data ) {
+          configureVoting(data.voting)
+        });
     })
 
     socket.on('newMode', function(data){
         $('#dynamicHTML').load('/', {needToConnect:false, userId:getUserId()})
+        $.get( "/voteStatus", function( data ) {
+          configureVoting(data.voting)
+        });
     })
+
+    socket.on('voteStatus', function(data){
+        configureVoting(data.voting)
+    })
+}
+
+function configureVoting(voting){
+    if(voting){
+        $('#voteButtons').show("fast")
+        $('#choice1').click(function(){
+            socket.emit('vote', {userId:getUserId(), username:name, vote:0})
+        })
+        $('#choice2').click(function(){
+            socket.emit('vote', {userId:getUserId(), username:name, vote:1})
+        })
+        $('#choice3').click(function(){
+            socket.emit('vote', {userId:getUserId(), username:name, vote:2})
+        })
+        $('#choice4').click(function(){
+            socket.emit('vote', {userId:getUserId(), username:name, vote:3})
+        })
+    } else {
+        $('#voteButtons').hide("fast")
+    }
 }
 
 function configureChat(){
@@ -91,7 +121,7 @@ function emitEnteringGameMessage(username){
 function emitAcclMessage(accl){
     if(!isConnected())
         return
-    socket.emit("accl", {accl:accl})
+    socket.emit("accl", {userId:getUserId(), accl:accl})
 }
 
 function generateHash(len){
