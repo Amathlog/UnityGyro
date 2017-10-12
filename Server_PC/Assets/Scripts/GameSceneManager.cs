@@ -25,24 +25,56 @@ public class GameSceneManager : MonoBehaviour {
     public bool gameStarted = false;
     private ParticleSystem explo;
 
-	void Awake(){
+    private Dictionary<string, GameObject> targets;
+    private Dictionary<string, Vector3> positions;
+    private Dictionary<string, bool> firing;
+
+    void Awake(){
 		if (instance == null) {
 			instance = this;
 		}
 	}
 
+    private void OnApplicationQuit() {
+        SocketClient.CleanUp();
+    }
+
+    void UpdatePositions() {
+        foreach(KeyValuePair<string, Vector3> entry in positions) {
+            if (!targets.ContainsKey(entry.Key)) {
+                targets[entry.Key] = Instantiate(target);
+                targets[entry.Key].GetComponent<SpriteRenderer>().color = new Color(Random.value, Random.value, Random.value);
+            }
+            targets[entry.Key].transform.position = entry.Value;
+            Debug.Log(entry.Value);
+            if (firing.ContainsKey(entry.Key)) {
+                if (firing[entry.Key]) {
+                    GameObject.Find("SpawnTarget").GetComponent<SpawnTarget>().Spawn(targets[entry.Key].transform.position, targets[entry.Key].GetComponent<SpriteRenderer>().color);
+                    firing[entry.Key] = false;
+                }
+            }
+        }
+    }
+
+    private void FixedUpdate() {
+        UpdatePositions();
+    }
+
     // Use this for initialization
     void Start () {
         explo = GameObject.Find("Explosions").GetComponent<ParticleSystem>();
-        server = GameObject.Find("Server").GetComponent<Server>();
+        //server = GameObject.Find("Server").GetComponent<Server>();
 		scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
 		timerText = GameObject.Find ("TimerText").GetComponent<Text> ();
 		calibrateScreen = GameObject.Find ("CalibrateScreen").GetComponent<CanvasGroup> ();
 		score = 0;
 		timer = 10;
 		timerText.text = timer.ToString();
+        positions = new Dictionary<string, Vector3>();
+        targets = new Dictionary<string, GameObject>();
+        firing = new Dictionary<string, bool>();
 
-		if(TextureCharacter.getInstance().tex != null){
+        if (TextureCharacter.getInstance().tex != null){
 			enemyMat.mainTexture = TextureCharacter.getInstance ().tex;
 		}
         //server.SetupServer();
@@ -50,6 +82,8 @@ public class GameSceneManager : MonoBehaviour {
         //server.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
         socketClient = SocketClient.GetInstance();
         socketClient.ChangeMode(1);
+        socketClient.updateEventCallbacks += OnReceivedUpdateMessage;
+        socketClient.fireEventCallbacks += OnReceivedFireMessage;
         myEnemiesComp = GameObject.Find ("EnemiesManager").GetComponent<Enemies> ();
 		StartCoroutine (GameCoroutine ());
     }
@@ -109,10 +143,24 @@ public class GameSceneManager : MonoBehaviour {
 		}
 
         yield return new WaitForSeconds(3.0f);
-        server.requestSceneChange(2);
+        socketClient.updateEventCallbacks -= OnReceivedUpdateMessage;
+        socketClient.fireEventCallbacks -= OnReceivedFireMessage;
+        SceneManager.LoadScene(2);
+        //server.requestSceneChange(2);
 
     }
-	
+
+    private void OnReceivedUpdateMessage(string id, float x, float y) {
+        float x_screen = (x + 1.0f) / 2.0f * Screen.width;
+        float y_screen = (-y + 1.0f) / 2.0f * Screen.height;
+        positions[id] = new Vector3(x_screen, y_screen, 0);
+    }
+
+    private void OnReceivedFireMessage(string id) {
+        firing[id] = true;
+        Debug.Log("Fire from : " + id);
+    }
+
     private void OnReceivedActionMessage(NetworkMessage netMsg) {
         ActionMessage msg = netMsg.ReadMessage<ActionMessage>();
         Debug.Log("Device : " + netMsg.conn.connectionId);

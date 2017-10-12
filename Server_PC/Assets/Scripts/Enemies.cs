@@ -27,7 +27,7 @@ public class Enemies : MonoBehaviour {
 
 	void Update(){
 		if (aliveEnemiesReadyForPattern) {
-			Debug.Log ("AnimateLoop");
+			//Debug.Log ("AnimateLoop");
 			foreach (EnemyMovementBehaviour e in aliveEnemies) {
 				e.AnimateLoop ();
 			}

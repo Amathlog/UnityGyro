@@ -179,6 +179,7 @@ io.sockets.on('connection', function (socket) {
         ids[msg.userId].connected = true
         ids[msg.userId].socket = socket
         socket.emit('connected')
+        ids["server"].socket.emit('handleperson', getMessageForGame('handleperson', {id:msg.userId, connection:true}))
         //socket.broadcast.emit('chat message', {server:true, msg:ids[userId].username + " welcome back!"});
       }else{
           //var colors = generatate_color();
@@ -203,6 +204,7 @@ io.sockets.on('connection', function (socket) {
     // socket.emit('newMode')
 
     socket.on('disconnect', function(){
+      /*ids["server"].socket.emit('handleperson', getMessageForGame('handleperson', {id:msg.userId, connection:false}))*/
       console.log('Client disconnected');
     });
     // socket.on('chat message', function (msg) {
@@ -211,8 +213,9 @@ io.sockets.on('connection', function (socket) {
     //     socket.broadcast.emit('chat message', {server:false, name:msg.name, colors:colors, msg:msg.msg});
     // })
     socket.on('shoot', function(msg){
-        console.log("Shoot! " + msg.accl)
+        ids["server"].socket.emit('updatePosition', getMessageForGame('fire', {id:msg.userId}))
     })
+
     socket.on('accl', function(msg){
         if(mode.currentMode === 1){
           data = gyroToGame(msg.accl)

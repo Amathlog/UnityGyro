@@ -60,9 +60,7 @@ public class VoteManager : MonoBehaviour {
         //server = GameObject.Find("Server").GetComponent<Server>();
         //server.SetupServer();
         socketClient = SocketClient.GetInstance();
-        socketClient.SetupSocket();
         socketClient.voteEventCallbacks += onVoteMessageReceived;
-        while (!socketClient.connected) { }
         socketClient.ChangeMode(0);
         socketClient.ChangeVoteStatus(false);
     }
@@ -162,6 +160,10 @@ public class VoteManager : MonoBehaviour {
         }
     }
 
+    private void OnApplicationQuit() {
+        SocketClient.CleanUp();
+    }
+
     void printResponses() {
         string res = "";
         for(int i = 0; i < responses.Length; i++) {
@@ -241,6 +243,7 @@ public class VoteManager : MonoBehaviour {
     IEnumerator WaitALittleEnd() {
         yield return new WaitForSeconds(2);
         CreateTexture();
+        socketClient.voteEventCallbacks -= onVoteMessageReceived;
         SceneManager.LoadScene(1);
     }
 

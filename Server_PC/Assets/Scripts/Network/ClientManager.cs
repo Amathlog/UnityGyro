@@ -11,6 +11,13 @@ public class ClientManager {
         SocketClient.GetInstance().connectionEventCallbacks += Connection;
     }
 
+    static public ClientManager GetInstance() {
+        if(instance == null) {
+            instance = new ClientManager();
+        }
+        return instance;
+    }
+
     public void Connection(string id, bool connection) {
         if (connection)
             clientIds.Add(id);

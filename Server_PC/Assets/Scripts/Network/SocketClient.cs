@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Quobject.SocketIoClientDotNet.Client;
+using System;
 using Newtonsoft.Json;
 using UnityEngine.Events;
 
@@ -63,9 +64,9 @@ class Fire {
 // Singleton containing all the network backend.
 // For each message, an event will be triggered.
 // Other classes need to register to those events
-public class SocketClient {
+public class SocketClient : IDisposable {
 
-	private Socket socket;
+    private Socket socket;
     public bool connected = false;
 
     private static SocketClient instance = null;
@@ -92,9 +93,36 @@ public class SocketClient {
         socket.Emit("serverMessage", JsonConvert.SerializeObject(msg));
     }
 
+    ~SocketClient() {
+        Dispose();
+    }
+
+    public static void CleanUp() {
+        if (instance != null) {
+            instance.Dispose();
+        }
+    }
+
+    public void Dispose() {
+        Dispose(true);
+        instance = null;
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing) {
+        if (disposing) {
+            if(socket != null) {
+                socket.Disconnect();
+                socket.Close();
+            }
+        }
+    }
+
     public static SocketClient GetInstance() {
         if (instance == null) {
             instance = new SocketClient();
+            instance.SetupSocket();
+            while (!instance.connected) { }
         }
         return instance;
     }
@@ -156,7 +184,7 @@ public class SocketClient {
         string jsonMsg = data.ToString();
         Message msg = JsonConvert.DeserializeObject<Message>(jsonMsg);
         UpdatePosition handle = JsonConvert.DeserializeObject<UpdatePosition>(msg.jsonData);
-        Debug.Log("x: " + handle.x.ToString() + "; y:" + handle.y.ToString());
+        //Debug.Log("x: " + handle.x.ToString() + "; y:" + handle.y.ToString());
 
         updateEventCallbacks(handle.id, handle.x, handle.y);
     }
