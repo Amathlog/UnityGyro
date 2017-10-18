@@ -151,9 +151,14 @@ public class GameSceneManager : MonoBehaviour {
     }
 
     private void OnReceivedUpdateMessage(string id, float x, float y) {
-        float x_screen = (x + 1.0f) / 2.0f * Screen.width;
-        float y_screen = (-y + 1.0f) / 2.0f * Screen.height;
-        positions[id] = new Vector3(x_screen, y_screen, 0);
+		Vector3 topLeft = Camera.main.ScreenToWorldPoint (new Vector3 (0f, Camera.main.pixelHeight, 10f));
+		Vector3 bottomRight = Camera.main.ScreenToWorldPoint (new Vector3 (Camera.main.pixelWidth, 0f, 10f));
+		Vector3 diag = bottomRight - topLeft;
+		float x_screen = (x + 1.0f) / 2.0f;
+		float y_screen = (-y + 1.0f) / 2.0f;
+		diag.x *= x_screen;
+		diag.y *= y_screen;
+		positions[id] = topLeft + diag;
     }
 
     private void OnReceivedFireMessage(string id) {
