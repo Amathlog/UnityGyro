@@ -89,27 +89,28 @@ public class VoteManager : MonoBehaviour {
     void PrepareVote() {
         //voteText.text = "Waiting for clients...";
         timeRemaining = timePerChoice;
+		float ratio = Screen.height / 1080.0f;
         for (int i = 0; i < 4; i++) {
             choices[i].sprite = spritesChoices[(int)currentVoteType * 4 + i];
             if (currentVoteType == VoteType.MOUTH) {
                 choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(700, 700);
                 Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
-                newPos.y += 100;
+                newPos.y += 100*ratio;
                 choices[i].GetComponent<RectTransform>().position = newPos;
             } else if (currentVoteType == VoteType.EYES) {
                 choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(600, 600);
                 Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
-                newPos.y -= 50;
+                newPos.y -= 50*ratio;
                 choices[i].GetComponent<RectTransform>().position = newPos;
             } else if(currentVoteType == VoteType.HAT) {
                 choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(500, 500);
                 Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
-                newPos.y -= 200;
+                newPos.y -= 200*ratio;
                 choices[i].GetComponent<RectTransform>().position = newPos;
             } else {
                 choices[i].GetComponent<RectTransform>().sizeDelta = new Vector3(225, 225);
                 Vector3 newPos = choices[i].GetComponent<RectTransform>().position;
-                newPos.y += 200;
+                newPos.y += 200*ratio;
                 choices[i].GetComponent<RectTransform>().position = newPos;
             }
         }
