@@ -80,7 +80,7 @@ var moveDetection = (function () {
 function updateText(){
     $('#accl').text(moveDetection.format(format));
     emitAcclMessage(moveDetection.value())
-    setTimeout(function () { updateText() }, 500);
+    setTimeout(function () { updateText() }, 33);
 }
 
 updateText()

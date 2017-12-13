@@ -51,7 +51,7 @@ public class Enemies : MonoBehaviour {
 		Debug.Log (enemyTypeIndex);
 		for (int i = 0; i < aliveEnemies.Count; i++) {
 			Vector3 v3 = Vector3.Lerp (eT.positiveLimit, eT.negativeLimit, i / (aliveEnemies.Count - 1f));
-			Debug.Log (v3);
+			//Debug.Log (v3);
 			aliveEnemies [i].ResetAnimation (Vector3.zero, v3 - aliveEnemies [i].transform.position, eT.t*GameSceneManager.instance.speedMultiplier, eT.acx, eT.acy, eT.acz);
 			if (i != aliveEnemies.Count - 1) {
 				StartCoroutine (aliveEnemies [i].AnimateCoroutine ());

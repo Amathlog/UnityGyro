@@ -3,17 +3,37 @@ block content
     style(type='text/css').
         #mainbody{
            position: absolute;
-           top: 115px;
+           top: 80px;
            width: 100%;
-           height: 85%;
+           height: 100%;
+           background-color: #f6f6f6;
+           opacity:0.1;
         }
 
-    h1#touch Shooter
-    h1#accl accl
-    button#calibrate Calibrate
+        #calibrate{
+          position: relative;
+          top: 10px;
+          left: 25%;
+          height: 70px;
+          width: 50%;
+          font-size: 25pt;
+        }
+
+        img{
+          margin: 25% 25% 25% 25%;
+          width: 50%;
+          opacity: 0.2;
+        }
+
+    //- h1#touch Shooter
+    //- h1#accl accl
+    button#calibrate Re-Center
 
     div#mainbody
+      //- img#img(src='/images/swipe_up.png')
 
     script(type='text/javascript').
         $('#calibrate').click(moveDetection.calibrate)
         touchsurface = configureTouch("mainbody")
+
+        $('#background').css("background-image", "url('/images/shoot_screen.png')")

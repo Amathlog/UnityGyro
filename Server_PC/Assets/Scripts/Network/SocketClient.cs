@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Quobject.SocketIoClientDotNet.Client;
 using System;
 using Newtonsoft.Json;
-using UnityEngine.Events;
 
 // Class Message
 // Contains the password to secure communications with the server
@@ -144,12 +141,17 @@ public class SocketClient : IDisposable {
     // Need to be called only once, to connect to the server
     // and configure 
     public void SetupSocket() {
-        socket = IO.Socket("http://localhost:3000");
+        IO.Options options = new IO.Options();
+        options.Timeout = 2;
+        socket = IO.Socket("http://localhost:3000", options);
+
         socket.On(Socket.EVENT_CONNECT, () => {
             connected = true;
             Message msg = new Message(ConnectionToServer.name, JsonConvert.SerializeObject(new ConnectionToServer()));
             socket.Emit("userId", JsonConvert.SerializeObject(msg));
         });
+
+        socket.On(Socket.EVENT_CONNECT_ERROR, () => { Debug.Log("Connection Timeout"); });
 
         socket.On(Connection.name, (data) => {
             string jsonMsg = data.ToString();

@@ -54,6 +54,7 @@ function configureDynamicHTML(firstTime){
 
 function configureVoting(voting){
     if(voting){
+        $('#voteText').text("Vote Now!")
         $('#voteButtons').show("fast")
         $('#choice1').click(function(){
             socket.emit('vote', {userId:getUserId(), username:name, vote:0})
@@ -68,6 +69,7 @@ function configureVoting(voting){
             socket.emit('vote', {userId:getUserId(), username:name, vote:3})
         })
     } else {
+        $('#voteText').text("Vote (Wait for server...)")
         $('#voteButtons').hide("fast")
     }
 }
@@ -105,7 +107,7 @@ function configureChat(){
 function emitShootMessage(accl){
     if(!isConnected())
         return
-    socket.emit("shoot", {shoot:true, accl:accl})
+    socket.emit("shoot", {userId:getUserId()})
 }
 
 function emitEnteringGameMessage(username){

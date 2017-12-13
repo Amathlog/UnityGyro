@@ -17,7 +17,8 @@ public class GameSceneManager : MonoBehaviour {
 	private Text scoreText, timerText;
 	public Enemies myEnemiesComp;
 	public Material enemyMat;
-	public float speedMultiplier=1;
+    public Texture2D defaultEnemyTex;
+    public float speedMultiplier=1;
 	private CanvasGroup calibrateScreen;
     private MouseTesting mouseTesting;
     private GameObject canvas;
@@ -47,13 +48,15 @@ public class GameSceneManager : MonoBehaviour {
         foreach(KeyValuePair<string, Vector3> entry in positions) {
             if (!targets.ContainsKey(entry.Key)) {
                 targets[entry.Key] = Instantiate(target);
-                targets[entry.Key].GetComponent<SpriteRenderer>().color = new Color(Random.value, Random.value, Random.value);
+                targets[entry.Key].transform.SetParent(canvas.transform);
+                targets[entry.Key].GetComponent<Image>().color = new Color(Random.value, Random.value, Random.value);
             }
             targets[entry.Key].transform.position = entry.Value;
-            Debug.Log(entry.Value);
+            //Debug.Log(entry.Value);
             if (firing.ContainsKey(entry.Key)) {
                 if (firing[entry.Key]) {
-                    GameObject.Find("SpawnTarget").GetComponent<SpawnTarget>().Spawn(targets[entry.Key].transform.position, targets[entry.Key].GetComponent<SpriteRenderer>().color);
+                    Vector3 spawnPos = Camera.main.ScreenToWorldPoint(targets[entry.Key].transform.position + Vector3.forward * 10);
+                    GameObject.Find("SpawnTarget").GetComponent<SpawnTarget>().Spawn(spawnPos, targets[entry.Key].GetComponent<Image>().color);
                     firing[entry.Key] = false;
                 }
             }
@@ -79,7 +82,7 @@ public class GameSceneManager : MonoBehaviour {
 		timerText = GameObject.Find ("TimerText").GetComponent<Text> ();
 		calibrateScreen = GameObject.Find ("CalibrateScreen").GetComponent<CanvasGroup> ();
         canvas = GameObject.Find("Canvas");
-        canvasTransform = canvas.GetComponent<RectTransform>().
+        canvasTransform = canvas.GetComponent<RectTransform>().position;
 		score = 0;
 		timer = 10;
 		timerText.text = timer.ToString();
@@ -90,7 +93,9 @@ public class GameSceneManager : MonoBehaviour {
 
         if (TextureCharacter.getInstance().tex != null){
 			enemyMat.mainTexture = TextureCharacter.getInstance ().tex;
-		}
+		} else {
+            enemyMat.mainTexture = defaultEnemyTex;
+        }
         //server.SetupServer();
         //server.RegisterHandler(ActionMessage.id, OnReceivedActionMessage);
         //server.RegisterHandler(CalibrationMessage.id, calibration.OnCalibrationMessageReceived);
@@ -109,23 +114,23 @@ public class GameSceneManager : MonoBehaviour {
 
 	IEnumerator GameCoroutine(){
 		float iterator = 0;
-		while (iterator <= 1) {
-			iterator += 0.02f;
-			calibrateScreen.alpha = iterator;
-			yield return new WaitForSeconds (0.02f);
-		}
+		//while (iterator <= 1) {
+		//	iterator += 0.02f;
+		//	calibrateScreen.alpha = iterator;
+		//	yield return new WaitForSeconds (0.02f);
+		//}
 
-		while (timer > 0) {
-			timer--;
-			timerText.text = timer.ToString();
-			yield return new WaitForSeconds (1.0f);
-		}
+		//while (timer > 0) {
+		//	timer--;
+		//	timerText.text = timer.ToString();
+		//	yield return new WaitForSeconds (1.0f);
+		//}
 
-		while (iterator > 0) {
-			iterator -= 0.02f;
-			calibrateScreen.alpha = iterator;
-		}
-		timer = 3;
+		//while (iterator > 0) {
+		//	iterator -= 0.02f;
+		//	calibrateScreen.alpha = iterator;
+		//}
+		timer = 10;
 		timerText.text = timer.ToString ();
 
 		while (timer > 0) {
@@ -165,19 +170,14 @@ public class GameSceneManager : MonoBehaviour {
     }
 
     private void OnReceivedUpdateMessage(string id, float x, float y) {
-		Vector3 topLeft = Camera.main.ScreenToWorldPoint (new Vector3 (0f, Camera.main.pixelHeight, 10f));
-		Vector3 bottomRight = Camera.main.ScreenToWorldPoint (new Vector3 (Camera.main.pixelWidth, 0f, 10f));
-		Vector3 diag = bottomRight - topLeft;
-		float x_screen = (x + 1.0f) / 2.0f;
-		float y_screen = (-y + 1.0f) / 2.0f;
-		diag.x *= x_screen;
-		diag.y *= y_screen;
-		positions[id] = topLeft + diag;
+        float new_x = (x - 1.0f) * -0.5f;
+        float new_y = (y + 1.0f) * 0.5f;
+        positions[id] = new Vector3(new_x * Screen.width, new_y * Screen.height);
     }
 
     private void OnReceivedFireMessage(string id) {
         firing[id] = true;
-        Debug.Log("Fire from : " + id);
+        //Debug.Log("Fire from : " + id);
     }
 
     private void OnReceivedActionMessage(NetworkMessage netMsg) {

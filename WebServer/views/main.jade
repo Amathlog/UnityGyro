@@ -1,17 +1,26 @@
 extends layout
 
 block content
-    h1 Main Page
+    //- h1 Main Page
 
-    div#dynamicHTML
+    style.
+        #background{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+        }
 
-    script(src="/javascripts/buffer.js")
-    script(src="/javascripts/moveDetection.js")
-    script(src="/javascripts/touch.js")
+    div#background
+        div#dynamicHTML
 
-    script(type="text/javascript").
-        lockScreen()
-        
-        connect()
+        script(src="/javascripts/buffer.js")
+        script(src="/javascripts/moveDetection.js")
+        script(src="/javascripts/touch.js")
 
-        configureDynamicHTML()
+        script(type="text/javascript").
+            lockScreen()
+            
+            connect()
+
+            configureDynamicHTML()

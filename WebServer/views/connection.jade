@@ -1,14 +1,57 @@
 block content
-    h1 Welcome to Bibittes Challenge
 
-    p Please state your username!
+    style.
+        #connection{
+            position: absolute;
+            top: 60%;
+            width: 100%;
+            height: 100%;
+            display: inline-block;
+            vertical-align: top;
+        }
 
-    input#username(type="text")
+        #username{
+            width: 50%;
+            height: 10%;
+            margin-top: 5%;
+            margin-left:25%;
+            text-align:center;
+        }
 
-    button.connect Enter the game
+        #textBox{
+            width: 70%;
+            height: 5%;
+            margin-left: 15%;
+            background-color: rgba(210, 210, 210, 0.9);
+        }
 
-    script(type="text/javascript").
+        #connectionText{
+            text-align: center;
+            font-size: 15pt;
+            margin: 5%
+        }
 
-        $('button.connect').click(function () {
-            emitEnteringGameMessage($('#username').val())
-        })
+        .connect{
+            margin-top: 5%;
+            width: 50%;
+            margin-left: 25%;
+            height: 10%;
+            font-size: 15pt;
+        }
+
+    div#connection
+
+        div#textBox
+            h1#connectionText Enter your username!
+
+        input#username(type="text")
+
+        button.connect Enter the game
+
+        script(type="text/javascript").
+
+            $('button.connect').click(function () {
+                emitEnteringGameMessage($('#username').val())
+            })
+
+            $('#background').css("background-image", "url('/images/home_screen.png')")
