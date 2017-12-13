@@ -8,7 +8,7 @@ public class Calibration : MonoBehaviour {
 	public Vector3 topLeft, bottomRight;
     // Use this for initialization
     void Start () {
-        Disable();
+        Enable();
     }
 
     public void OnCalibrationMessageReceived(NetworkMessage netMsg) {

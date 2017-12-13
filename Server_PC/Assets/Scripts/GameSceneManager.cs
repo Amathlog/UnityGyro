@@ -19,11 +19,15 @@ public class GameSceneManager : MonoBehaviour {
 	public Material enemyMat;
 	public float speedMultiplier=1;
 	private CanvasGroup calibrateScreen;
+    private MouseTesting mouseTesting;
+    private GameObject canvas;
+    private Vector2 canvasTransform;
 
-	private int nextWaveType = 0;
+    private int nextWaveType = 0;
 
     public bool gameStarted = false;
     private ParticleSystem explo;
+    public bool mouseDebug = false;
 
     private Dictionary<string, GameObject> targets;
     private Dictionary<string, Vector3> positions;
@@ -57,6 +61,13 @@ public class GameSceneManager : MonoBehaviour {
     }
 
     private void FixedUpdate() {
+        if (mouseDebug) {
+            positions["mouse"] = mouseTesting.position;
+            if (mouseTesting.fire) {
+                firing["mouse"] = true;
+                mouseTesting.fire = false;
+            }
+        }
         UpdatePositions();
     }
 
@@ -67,12 +78,15 @@ public class GameSceneManager : MonoBehaviour {
 		scoreText = GameObject.Find ("ScoreText").GetComponent<Text> ();
 		timerText = GameObject.Find ("TimerText").GetComponent<Text> ();
 		calibrateScreen = GameObject.Find ("CalibrateScreen").GetComponent<CanvasGroup> ();
+        canvas = GameObject.Find("Canvas");
+        canvasTransform = canvas.GetComponent<RectTransform>().
 		score = 0;
 		timer = 10;
 		timerText.text = timer.ToString();
         positions = new Dictionary<string, Vector3>();
         targets = new Dictionary<string, GameObject>();
         firing = new Dictionary<string, bool>();
+        mouseTesting = GameObject.Find("MouseTesting").GetComponent<MouseTesting>();
 
         if (TextureCharacter.getInstance().tex != null){
 			enemyMat.mainTexture = TextureCharacter.getInstance ().tex;
